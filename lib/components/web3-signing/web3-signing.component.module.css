@@ -1,0 +1,36 @@
+.signing {
+  display: grid;
+  gap: var(--m);
+}
+
+.payloadLimit {
+  color: var(--text-muted-mid);
+  font-weight: 400;
+}
+
+.stateOverview {
+  margin: 0;
+  color: var(--text-muted-mid);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.signers {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--m);
+}
+
+@media (max-width: 860px) {
+  .signers {
+    grid-template-columns: 1fr;
+  }
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-muted-mid);
+}
