@@ -85,7 +85,6 @@ export class Web3SigningComponent extends AbstractComponent {
   connectedCallback() {
     componentsRegistryService.connectBucket(this.innerBucket);
     super.connectedCallback();
-    this.ensureTonManifest();
     this.updateWalletHint();
     this.setupUrlSync();
   }
@@ -216,12 +215,6 @@ export class Web3SigningComponent extends AbstractComponent {
 
   private emptySignerState(): SignerState {
     return { pubKey: null, signed: false, wallet: null };
-  }
-
-  private ensureTonManifest() {
-    if (web3Service.getTonManifestUrl()) return;
-
-    web3Service.setTonManifestUrl(new URL("/tonconnect-manifest.json", window.location.href).href);
   }
 
   private updateWalletHint() {

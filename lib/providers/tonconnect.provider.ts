@@ -80,6 +80,7 @@ export class TonConnectProvider implements Web3Provider {
   }
 
   async signMessage(message: string | Uint8Array) {
+    await this.ui.connectionRestored;
     const account = this.requireAccount();
     const text = new TextDecoder().decode(toMessageBytes(message));
 

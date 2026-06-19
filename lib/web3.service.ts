@@ -118,6 +118,7 @@ export class Web3Service extends AbstractService {
   readonly setup$ = this.newRx(0);
 
   private provider: Web3Provider | null = null;
+  private activeProviderKey: string | null = null;
   private tonManifestUrl: string | null = null;
   private walletConnectProjectId: string | null = null;
   private builtinProviders: Web3WalletSlot[] | null = null;
@@ -170,9 +171,18 @@ export class Web3Service extends AbstractService {
     return getWalletModeLabel(wallet.kind, wallet.transport);
   }
 
-  useProvider(provider: Web3Provider) {
+  useProvider(provider: Web3Provider, key: string | null = null) {
     this.provider = provider;
+    this.activeProviderKey = key;
     return this;
+  }
+
+  private walletProviderKey(kind: WalletKind, transport: WalletTransport) {
+    return `${kind}:${transport}`;
+  }
+
+  private customProviderKey(providerId: string) {
+    return `custom:${providerId}`;
   }
 
   getProvider() {
@@ -218,6 +228,12 @@ export class Web3Service extends AbstractService {
     kind: InjectedWalletKind = "ethereum",
     options: InjectedProviderOptions = {},
   ) {
+    const key = this.walletProviderKey(kind, "extension");
+
+    if (this.provider && this.activeProviderKey === key) {
+      return this;
+    }
+
     const provider = createInjectedProvider(
       kind,
       (pubKey) => {
@@ -228,7 +244,7 @@ export class Web3Service extends AbstractService {
       },
     );
 
-    return this.useProvider(provider);
+    return this.useProvider(provider, key);
   }
 
   async useWalletProvider(
@@ -236,6 +252,12 @@ export class Web3Service extends AbstractService {
     transport: WalletTransport = "auto",
     options: WalletProviderOptions = {},
   ) {
+    const key = this.walletProviderKey(kind, transport);
+
+    if (this.provider && this.activeProviderKey === key) {
+      return this;
+    }
+
     const provider = await createWalletProvider(
       kind,
       transport,
@@ -245,7 +267,7 @@ export class Web3Service extends AbstractService {
       this.walletOptions(options),
     );
 
-    return this.useProvider(provider);
+    return this.useProvider(provider, key);
   }
 
   ensureInjectedProvider(
@@ -286,6 +308,8 @@ export class Web3Service extends AbstractService {
     }
 
     await this.provider.disconnect();
+    this.provider = null;
+    this.activeProviderKey = null;
     this.userPubKey$.update(null);
   }
 
@@ -314,8 +338,14 @@ export class Web3Service extends AbstractService {
   }
 
   async useCustomProvider(providerId: string) {
+    const key = this.customProviderKey(providerId);
+
+    if (this.provider && this.activeProviderKey === key) {
+      return this;
+    }
+
     const provider = await this.resolveCustomProvider(providerId);
-    return this.useProvider(provider);
+    return this.useProvider(provider, key);
   }
 
   async connectCustom(providerId: string) {

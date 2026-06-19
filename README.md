@@ -83,12 +83,14 @@ Without a Project ID, the **Mobile wallet (WalletConnect)** option stays disable
 TON wallets (extension and mobile app) require a public `tonconnect-manifest.json`.
 
 1. Add the manifest file to your site root (must be reachable over HTTPS in production).
-2. Point `web3Service` to it:
+2. Point `web3Service` to the absolute manifest URL at app bootstrap:
 
 ```ts
-web3Service.setTonManifestUrl(
-  new URL("/tonconnect-manifest.json", window.location.href).href
-);
+import { web3Service } from "cruzo-web3";
+
+const tonManifestUrl = new URL("/tonconnect-manifest.json", window.location.href).href;
+
+web3Service.setTonManifestUrl(tonManifestUrl);
 ```
 
 Example manifest:
