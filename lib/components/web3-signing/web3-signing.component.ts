@@ -3,7 +3,7 @@ import styles from "./web3-signing.component.module.css";
 import { AbstractComponent, componentsRegistryService, routerService, RxBucket } from "cruzo";
 import { UI_KIT } from "cruzo/ui-components/const";
 
-import "../web3-signer/web3-signer.component";
+import { Web3SignerComponent } from "../web3-signer/web3-signer.component";
 import { detectInjectedWallets, getInjectedWalletLabel } from "../../providers/injected";
 import {
   buildSearchWithSigning,
@@ -23,7 +23,7 @@ const PAYLOAD_INPUT_ID = "payload";
 export class Web3SigningComponent extends AbstractComponent {
   static selector = "web3-signing-component";
 
-  dependencies = new Set(["web3-signer-component"]);
+  dependencies = new Set([Web3SignerComponent.selector]);
 
   walletHint$ = this.newRx("");
   stateOverview$ = this.newRx("");
