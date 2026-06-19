@@ -1,6 +1,6 @@
 {
   "name": "cruzo-web3",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Web3 addon for cruzo: wallet providers, sign, verify",
   "license": "MIT",
   "type": "module",
@@ -31,28 +31,16 @@
     "typecheck": "tsc -p tsconfig.json",
     "prepublishOnly": "npm run typecheck"
   },
-  "peerDependencies": {
-    "@tonconnect/sdk": ">=3.0.0",
-    "@tonconnect/ui": ">=3.0.0",
-    "@walletconnect/ethereum-provider": ">=2.0.0",
-    "cruzo": "0.9.889"
-  },
-  "peerDependenciesMeta": {
-    "@tonconnect/sdk": {
-      "optional": true
-    },
-    "@tonconnect/ui": {
-      "optional": true
-    },
-    "@walletconnect/ethereum-provider": {
-      "optional": true
-    }
-  },
-  "devDependencies": {
+  "dependencies": {
     "@tonconnect/sdk": "^3.4.1",
     "@tonconnect/ui": "^3.0.0",
+    "@walletconnect/ethereum-provider": "^2.23.9"
+  },
+  "peerDependencies": {
+    "cruzo": "0.9.889"
+  },
+  "devDependencies": {
     "@types/node": "20.0.0",
-    "@walletconnect/ethereum-provider": "^2.23.9",
     "cruzo": "0.9.889",
     "typescript": "5.9.3"
   }

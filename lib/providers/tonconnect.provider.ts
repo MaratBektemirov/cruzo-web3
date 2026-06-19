@@ -70,9 +70,12 @@ export class TonConnectProvider implements Web3Provider {
       });
     }
 
-    return this.waitForAccount(() => {
-      void this.ui.openModal();
-    });
+    return this.waitForAccount(
+      () => {
+        void this.ui.openModal();
+      },
+      { watchModalClose: true },
+    );
   }
 
   async disconnect() {
@@ -115,28 +118,46 @@ export class TonConnectProvider implements Web3Provider {
     return account;
   }
 
-  private waitForAccount(start: () => void) {
+  private waitForAccount(start: () => void, options?: { watchModalClose?: boolean }) {
     return new Promise<PubKey>((resolve, reject) => {
-      const unsubscribe = this.ui.onStatusChange(
+      let settled = false;
+
+      const finish = (action: () => void) => {
+        if (settled) return;
+
+        settled = true;
+        unsubscribeStatus();
+        unsubscribeModal?.();
+        action();
+      };
+
+      const unsubscribeStatus = this.ui.onStatusChange(
         (wallet) => {
           if (!wallet?.account) return;
 
-          unsubscribe();
           const pubKey = this.toPubKey(wallet.account);
           this.onAccountChange?.(pubKey);
-          resolve(pubKey);
+          finish(() => resolve(pubKey));
         },
         (error) => {
-          unsubscribe();
-          reject(error);
+          finish(() => reject(error));
         },
       );
+
+      const unsubscribeModal = options?.watchModalClose
+        ? this.ui.onModalStateChange((state) => {
+            if (state.status === "opened" || this.ui.account) return;
+
+            if (state.closeReason === "action-cancelled") {
+              finish(() => reject(new Error("Connection cancelled")));
+            }
+          })
+        : null;
 
       try {
         start();
       } catch (error) {
-        unsubscribe();
-        reject(error);
+        finish(() => reject(error));
       }
     });
   }

@@ -8,11 +8,6 @@ Web3 addon for [cruzo](https://github.com/MaratBektemirov/cruzo): wallet connect
 npm install cruzo cruzo-web3
 ```
 
-For mobile wallets, also install optional peer dependencies:
-
-```bash
-npm install @tonconnect/sdk @tonconnect/ui @walletconnect/ethereum-provider
-```
 
 ## Public API
 

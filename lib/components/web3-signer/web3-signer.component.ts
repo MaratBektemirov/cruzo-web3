@@ -16,6 +16,7 @@ import {
 import type { SignerState, SignerWallet } from "../../types/signer-state";
 import { buildSigningPageUrl } from "../../signing-url";
 import { pubKeyToText } from "../../utils/format-pub-key";
+import { formatWalletError, isWalletUserCancellation } from "../../utils/wallet-error";
 import { web3Service } from "../../web3.service";
 import { isCustomWallet } from "../../web3-wallet";
 
@@ -309,7 +310,9 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
 
     action()
       .catch((error: unknown) => {
-        this.error$.update(error instanceof Error ? error.message : String(error));
+        if (isWalletUserCancellation(error)) return;
+
+        this.error$.update(formatWalletError(error));
       })
       .finally(() => {
         this.busy$.update(false);
