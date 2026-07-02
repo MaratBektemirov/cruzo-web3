@@ -55,8 +55,22 @@ function readEncoding(encoding: string): PubKeyEncoding {
   return encoding as PubKeyEncoding;
 }
 
+function normalizeHexValue(value: string) {
+  return value.startsWith("0x") || value.startsWith("0X") ? value.slice(2) : value;
+}
+
+function isValidHexValue(value: string) {
+  const hex = normalizeHexValue(value);
+
+  return hex.length > 0 && /^[0-9a-fA-F]+$/.test(hex);
+}
+
 function isValidEncodedValue(value: string, encoding: PubKeyEncoding) {
-  return isNonEmptyString(value) && ENCODING_RE[encoding].test(value);
+  if (!isNonEmptyString(value)) return false;
+
+  if (encoding === "hex") return isValidHexValue(value);
+
+  return ENCODING_RE[encoding].test(value);
 }
 
 export function isPubKey(value: unknown): value is PubKey {

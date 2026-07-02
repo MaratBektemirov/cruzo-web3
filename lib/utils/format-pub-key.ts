@@ -11,8 +11,3 @@ export function pubKeyToText(pubKey: PubKey | null): string {
 
   return value;
 }
-
-/** @deprecated Use pubKeyToText for full key display */
-export function formatPubKey(pubKey: PubKey | null): string {
-  return pubKeyToText(pubKey);
-}

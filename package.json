@@ -1,6 +1,6 @@
 {
   "name": "cruzo-web3",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Web3 addon for cruzo: wallet providers, sign, verify",
   "license": "MIT",
   "type": "module",
@@ -25,6 +25,14 @@
     "./components/web3-signer": {
       "types": "./lib/components/web3-signer/web3-signer.component.ts",
       "default": "./lib/components/web3-signer/web3-signer.component.ts"
+    },
+    "./components/secret-auth": {
+      "types": "./lib/components/secret-auth/secret-auth.component.ts",
+      "default": "./lib/components/secret-auth/secret-auth.component.ts"
+    },
+    "./secret-auth": {
+      "types": "./lib/secret-auth/index.ts",
+      "default": "./lib/secret-auth/index.ts"
     }
   },
   "scripts": {

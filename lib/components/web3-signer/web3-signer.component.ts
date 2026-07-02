@@ -164,7 +164,7 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
           this.config$.actual?.payload,
         );
 
-        void this.copyText(url)
+        this.copyText(url)
           .then(() => {
             toastService.show({
               kind: "success",
@@ -206,7 +206,7 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
 
     if (!pubKey?.value) return;
 
-    void navigator.clipboard
+    navigator.clipboard
       .writeText(pubKeyToText(pubKey))
       .then(() => {
         toastService.show({

@@ -1,5 +1,71 @@
 import type { PubKeyEncoding } from "../types/web3-types";
 
+const BASE64 = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const BASE64_DECODE = new Int8Array(128).fill(-1);
+
+for (let i = 0; i < BASE64.length; i++) {
+  BASE64_DECODE[BASE64.charCodeAt(i)] = i;
+}
+
+function base64CharValue(code: number): number {
+  if (code >= BASE64_DECODE.length) return -1;
+
+  return BASE64_DECODE[code];
+}
+
+function decodeBase64Core(value: string): Uint8Array | null {
+  const len = value.length;
+
+  if (!len || len % 4 !== 0) return null;
+
+  const pad =
+    value.charCodeAt(len - 1) === 61
+      ? value.charCodeAt(len - 2) === 61
+        ? 2
+        : 1
+      : 0;
+  const out = new Uint8Array((len / 4) * 3 - pad);
+  let outIndex = 0;
+
+  for (let i = 0; i < len; i += 4) {
+    const c0 = base64CharValue(value.charCodeAt(i));
+    const c1 = base64CharValue(value.charCodeAt(i + 1));
+    const q2 = value.charCodeAt(i + 2);
+    const q3 = value.charCodeAt(i + 3);
+    const c2 = q2 === 61 ? 0 : base64CharValue(q2);
+    const c3 = q3 === 61 ? 0 : base64CharValue(q3);
+
+    if (c0 < 0 || c1 < 0 || (q2 !== 61 && c2 < 0) || (q3 !== 61 && c3 < 0)) return null;
+
+    const n = (c0 << 18) | (c1 << 12) | (c2 << 6) | c3;
+
+    out[outIndex++] = (n >> 16) & 0xff;
+    if (q2 !== 61) out[outIndex++] = (n >> 8) & 0xff;
+    if (q3 !== 61) out[outIndex++] = n & 0xff;
+  }
+
+  return out;
+}
+
+export function decodeBase64(value: string): Uint8Array | null {
+  if (!value.length) return null;
+
+  try {
+    return decodeBase64Core(value);
+  } catch {
+    return null;
+  }
+}
+
+export function decodeBase64Url(value: string): Uint8Array | null {
+  if (!value.length) return null;
+
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
+
+  return decodeBase64Core(padded);
+}
+
 const BASE58_ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 
 export function decodeHex(value: string): Uint8Array | null {
@@ -14,23 +80,6 @@ export function decodeHex(value: string): Uint8Array | null {
   }
 
   return out;
-}
-
-export function decodeBase64(value: string): Uint8Array | null {
-  if (!value.length) return null;
-
-  try {
-    const binary = atob(value);
-    const out = new Uint8Array(binary.length);
-
-    for (let i = 0; i < binary.length; i++) {
-      out[i] = binary.charCodeAt(i);
-    }
-
-    return out;
-  } catch {
-    return null;
-  }
 }
 
 export function decodeBase58(value: string): Uint8Array | null {

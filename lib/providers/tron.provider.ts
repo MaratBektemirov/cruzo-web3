@@ -1,5 +1,5 @@
 import type { PubKey, Web3Provider } from "../types/web3-types";
-import { toMessageBytes } from "./message-bytes";
+import { toBytes } from "../crypto/decode-bytes";
 
 export interface TronWeb {
   ready?: boolean;
@@ -31,7 +31,7 @@ function toHexMessage(message: string | Uint8Array, tronWeb?: TronWeb) {
 
   if (tronWeb?.toHex) return tronWeb.toHex(text);
 
-  const bytes = toMessageBytes(message);
+  const bytes = toBytes(message);
   let hex = "";
 
   for (const byte of bytes) {
@@ -75,7 +75,6 @@ export class TronProvider implements Web3Provider {
   }
 
   async disconnect() {
-    // TronLink does not expose a standard disconnect for dApps.
   }
 
   async signMessage(message: string | Uint8Array) {

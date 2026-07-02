@@ -3,7 +3,7 @@ import { TonConnectUI } from "@tonconnect/ui";
 import type { Account } from "@tonconnect/sdk";
 
 import type { PubKey, Web3Provider } from "../types/web3-types";
-import { toMessageBytes } from "./message-bytes";
+import { toBytes } from "../crypto/decode-bytes";
 import type { WalletTransport } from "./wallet-transport";
 
 export type TonConnectProviderConfig = {
@@ -66,13 +66,13 @@ export class TonConnectProvider implements Web3Provider {
       }
 
       return this.waitForAccount(() => {
-        void this.ui.connector.connect({ jsBridgeKey });
+        this.ui.connector.connect({ jsBridgeKey });
       });
     }
 
     return this.waitForAccount(
       () => {
-        void this.ui.openModal();
+        this.ui.openModal();
       },
       { watchModalClose: true },
     );
@@ -85,7 +85,7 @@ export class TonConnectProvider implements Web3Provider {
   async signMessage(message: string | Uint8Array) {
     await this.ui.connectionRestored;
     const account = this.requireAccount();
-    const text = new TextDecoder().decode(toMessageBytes(message));
+    const text = new TextDecoder().decode(toBytes(message));
 
     const response = await this.ui.signData({
       type: "text",

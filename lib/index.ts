@@ -18,3 +18,7 @@ export { isBuiltinWallet, isCustomWallet } from "./web3-wallet";
 
 export { Web3SignerComponent } from "./components/web3-signer/web3-signer.component";
 export { Web3SigningComponent } from "./components/web3-signing/web3-signing.component";
+export { SecretAuthComponent } from "./components/secret-auth/secret-auth.component";
+export type { SecretAuthConfig } from "./components/secret-auth/secret-auth.component";
+
+export type { SecretAuthMode, SecretAuthState } from "./types/secret-auth-state";

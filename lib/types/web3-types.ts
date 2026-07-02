@@ -14,7 +14,6 @@ export interface PubKey {
 
 export interface VerifySignedContentOptions {
   signatureEncoding?: PubKeyEncoding;
-  /** EIP-191 prefix + keccak256 before secp256k1 verify. Default: true for secp256k1. */
   evmPersonalSign?: boolean;
 }
 

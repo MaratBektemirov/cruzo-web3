@@ -15,6 +15,7 @@ Main entry (`cruzo-web3`):
 
 - `web3Service` — wallet connect, sign, verify, wallet picker config
 - `Web3SigningComponent`, `Web3SignerComponent` — ready-made UI
+- `SecretAuthComponent` — SecretAuth UI
 - `ALL_BUILTIN_WALLET_SLOTS`, `isBuiltinWallet`, `isCustomWallet`
 - types: `Web3Config`, `Web3CustomProviderConfig`, `Web3WalletSlot`, `Web3WalletTarget`, …
 
@@ -22,6 +23,8 @@ Subpath entries (side-effect imports that register components):
 
 - `cruzo-web3/components/web3-signing`
 - `cruzo-web3/components/web3-signer`
+- `cruzo-web3/components/secret-auth`
+- `cruzo-web3/secret-auth` — auth protocol helpers (no UI)
 
 ```ts
 import { web3Service } from "cruzo-web3";
@@ -231,6 +234,170 @@ Supported `wallet` / `kind` values: `"ethereum"` | `"ton"` | `"solana"` | `"tron
 `userPubKey$` — reactive pub key of the last connected wallet on `web3Service`.
 
 Also available: `detectInjectedWallets()`, `hasInjectedWallet()`, `parsePubKey()`, `isPubKey()`, `isValidPubKey()`, `useProvider()`, `useWalletProvider()`.
+
+## SecretAuth
+
+Verification-only auth protocol: server issues a challenge, client signs it with a private key, server verifies the signature against the public key. Session token format is out of scope.
+
+### Challenge message
+
+```
+example.com wants you to prove your signing key:
+
+nonce: k8f3m2x9
+exp: 1719667500
+```
+
+### Server flow
+
+Verification happens **on the server**. The UI only assembles a proof (`message`, `signature`, `pubKey`) and sends it to your API.
+
+Proof `pubKey` uses `algorithm` (crypto) and `source` (where the key comes from). `signature` is an object:
+
+```json
+{
+  "message": "example.com wants you to prove your signing key:\n\nnonce: k8f3m2x9\nexp: 1719667500",
+  "signature": {
+    "value": "0x…"
+  },
+  "pubKey": {
+    "algorithm": "secp256k1",
+    "source": "ethereum",
+    "value": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+    "encoding": "hex"
+  }
+}
+```
+
+Raw Ed25519 key mode: `"algorithm": "Ed25519", "source": "raw"`.
+
+WebAuthn passkey mode: `"algorithm": "ES256", "source": "webauthn"`, assertion data in `signature.extension`:
+
+```json
+{
+  "message": "...",
+  "signature": {
+    "value": "base64url…",
+    "encoding": "base64url",
+    "extension": {
+      "authenticatorData": "base64url…",
+      "clientDataJSON": "base64url…"
+    }
+  },
+  "pubKey": {
+    "algorithm": "ES256",
+    "source": "webauthn",
+    "value": "credentialId-base64url",
+    "encoding": "base64url"
+  }
+}
+```
+
+Server verify needs the credential public key from registration:
+
+```ts
+const ok = await verifySecretAuthProof(proof, {
+  domain: challenge.domain,
+  webauthn: {
+    credentialPublicKey: storedCredentialPublicKey,
+    expectedOrigin: "https://example.com",
+  },
+});
+```
+
+| `algorithm` | `source` | verify |
+|-------------|----------|--------|
+| `secp256k1` | `ethereum` | EIP-191 / address |
+| `secp256k1` | `tron` | Tron address |
+| `secp256k1` | `raw` | EIP-191 / address (raw key) |
+| `Ed25519` | `ton` / `solana` | Ed25519 (wallet) |
+| `Ed25519` | `raw` | Ed25519 (raw key) |
+| `ES256` | `webauthn` | WebAuthn assertion |
+
+```ts
+import {
+  formatSecretAuthChallenge,
+  generateSecretAuthNonce,
+  verifySecretAuthProof,
+} from "cruzo-web3/secret-auth";
+
+const challenge = {
+  domain: "example.com",
+  nonce: generateSecretAuthNonce(),
+  exp: Math.floor(Date.now() / 1000) + 300,
+};
+
+const message = formatSecretAuthChallenge(challenge);
+// store nonce server-side, send `message` to client
+
+// POST /auth/verify — client sends proof JSON
+const ok = await verifySecretAuthProof(proof, { domain: challenge.domain });
+// ok → issue your session token (JWT, cookie, etc.)
+```
+
+Generate and store nonce on the server. Client-side nonce generation is only for demos and tests.
+
+Public API (`cruzo-web3/secret-auth`): `formatSecretAuthChallenge`, `generateSecretAuthNonce`, `verifySecretAuthProof`, `verifySecretAuthProofLocal` + types.
+
+### Client-side preview
+
+Same checks, structured result — for paste UX or tests. **Not authoritative.**
+
+```ts
+import { verifySecretAuthProofLocal } from "cruzo-web3/secret-auth";
+
+const result = await verifySecretAuthProofLocal(proof, { domain: "example.com" });
+
+if (!result.ok) {
+  console.log(result.reason); // "expired" | "invalid-signature" | ...
+}
+```
+
+### Components (cruzo-way)
+
+Challenge lives in **bucket state**; title — in **config**.
+
+```ts
+import { RxBucket, componentsRegistryService } from "cruzo";
+
+const authBucket = new RxBucket({
+  secretAuth: {
+    config: { title: "Sign in" },
+  },
+});
+
+componentsRegistryService.connectBucket(authBucket);
+
+authBucket.setState("secretAuth", {
+  challenge: { domain: "example.com", nonce: "...", exp: 1719667500 },
+  proof: null,
+  signed: false,
+  pubKey: null,
+  mode: null,
+  wallet: null,
+  passkey: null,
+});
+
+// after server returns a new challenge:
+const current = authBucket.getState("secretAuth") ?? {};
+authBucket.setState("secretAuth", {
+  ...current,
+  challenge,
+  proof: null,
+  signed: false,
+  pubKey: null,
+  wallet: null,
+});
+```
+
+```html
+<secret-auth-component
+  component-id="secretAuth"
+  bucket-id="myAuthBucket">
+</secret-auth-component>
+```
+
+State in bucket: `{ challenge, proof, signed, pubKey, mode, wallet, passkey }`. Read `proof` and POST it to the server.
 
 ## Typecheck
 

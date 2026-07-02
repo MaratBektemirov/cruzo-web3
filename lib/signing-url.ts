@@ -1,4 +1,6 @@
 import { isPubKey } from "./pub-key";
+import { decodeBase64Url } from "./crypto/decode-bytes";
+import { encodeBase64Url } from "./crypto/encode-bytes";
 import type { WalletKind } from "./providers/wallet";
 import type { WalletTransport } from "./providers/wallet-transport";
 import type { PubKey, PubKeyAlgorithm, PubKeyEncoding } from "./types/web3-types";
@@ -97,23 +99,13 @@ function isSignerState(value: unknown): value is SignerState {
 }
 
 function toBase64Url(text: string) {
-  const bytes = new TextEncoder().encode(text);
-  let binary = "";
-
-  for (const byte of bytes) binary += String.fromCharCode(byte);
-
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return encodeBase64Url(new TextEncoder().encode(text));
 }
 
 function fromBase64Url(value: string) {
-  const padded = value.replace(/-/g, "+").replace(/_/g, "/");
-  const pad = padded.length % 4 === 0 ? "" : "=".repeat(4 - (padded.length % 4));
-  const binary = atob(padded + pad);
-  const bytes = new Uint8Array(binary.length);
+  const bytes = decodeBase64Url(value);
 
-  for (let index = 0; index < binary.length; index++) {
-    bytes[index] = binary.charCodeAt(index);
-  }
+  if (!bytes) throw new Error("Invalid base64url payload");
 
   return new TextDecoder().decode(bytes);
 }

@@ -1,4 +1,3 @@
-// Keccak-256 sponge (Ethereum). Adapted from @noble/hashes (MIT).
 
 const U32_MASK = 0xffffffff;
 

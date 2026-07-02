@@ -1,5 +1,6 @@
 import type { PubKey, Web3Provider } from "../types/web3-types";
-import { bytesToBase64, toMessageBytes } from "./message-bytes";
+import { encodeBase64 } from "../crypto/encode-bytes";
+import { toBytes } from "../crypto/decode-bytes";
 
 export interface SolanaPublicKey {
   toBase58(): string;
@@ -66,7 +67,7 @@ export class SolanaProvider implements Web3Provider {
 
   async signMessage(message: string | Uint8Array) {
     const publicKey = await this.requirePublicKey();
-    const bytes = toMessageBytes(message);
+    const bytes = toBytes(message);
 
     const { signature } = await this.wallet.signMessage(bytes, "utf8");
 
@@ -78,7 +79,7 @@ export class SolanaProvider implements Web3Provider {
       throw new Error("Connected Solana wallet account changed before signing");
     }
 
-    return bytesToBase64(signature);
+    return encodeBase64(signature);
   }
 
   private async requirePublicKey() {

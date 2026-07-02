@@ -8,10 +8,15 @@ export type WalletConnectEthereumConfig = {
   chains?: number[];
 };
 
+type WalletConnectEthereum = Awaited<ReturnType<typeof EthereumProvider.init>>;
+
 export class WalletConnectEthereumProvider implements Web3Provider {
   readonly id = "walletconnect";
 
-  private constructor(private inner: Eip1193Provider) {}
+  private constructor(
+    private wc: WalletConnectEthereum,
+    private inner: Eip1193Provider,
+  ) {}
 
   static async create(
     config: WalletConnectEthereumConfig,
@@ -31,19 +36,29 @@ export class WalletConnectEthereumProvider implements Web3Provider {
     });
 
     return new WalletConnectEthereumProvider(
+      wc,
       Eip1193Provider.fromEthereum(wc as Eip1193Like, onAccountChange),
     );
   }
 
-  connect() {
+  async connect() {
+    await this.wc.enable();
     return this.inner.connect();
   }
 
-  disconnect() {
-    return this.inner.disconnect();
+  async disconnect() {
+    await this.inner.disconnect();
+
+    if (this.wc.session) {
+      await this.wc.disconnect();
+    }
   }
 
-  signMessage(message: string | Uint8Array) {
+  async signMessage(message: string | Uint8Array) {
+    if (!this.wc.session) {
+      await this.wc.enable();
+    }
+
     return this.inner.signMessage(message);
   }
 }
