@@ -22,3 +22,4 @@ export { SecretAuthComponent } from "./components/secret-auth/secret-auth.compon
 export type { SecretAuthConfig } from "./components/secret-auth/secret-auth.component";
 
 export type { SecretAuthMode, SecretAuthState } from "./types/secret-auth-state";
+export type { SecretAuthChallenge } from "./secret-auth/types";

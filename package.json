@@ -1,6 +1,6 @@
 {
   "name": "cruzo-web3",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Web3 addon for cruzo: wallet providers, sign, verify",
   "license": "MIT",
   "type": "module",
@@ -45,11 +45,11 @@
     "@walletconnect/ethereum-provider": "^2.23.9"
   },
   "peerDependencies": {
-    "cruzo": "0.9.889"
+    "cruzo": "1.0.1"
   },
   "devDependencies": {
     "@types/node": "20.0.0",
-    "cruzo": "0.9.889",
+    "cruzo": "1.0.1",
     "typescript": "5.9.3"
   }
 }
