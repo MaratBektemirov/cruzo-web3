@@ -345,6 +345,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
     this.error$.update("");
     this.mode$.update(mode);
+    secretAuthService.setMode(mode);
 
     if (mode === "ephemeral") {
       this.prepareEphemeralKey();
@@ -364,6 +365,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
     this.modeBucket.setValue(MODE_COMPONENT_ID, mode, "0", true);
     this.mode$.update(mode);
+    secretAuthService.setMode(mode);
 
     if (mode === "ephemeral") {
       this.prepareEphemeralKey();

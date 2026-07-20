@@ -1,6 +1,6 @@
 {
   "name": "cruzo-web3",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Web3 addon for cruzo: wallet providers, sign, verify",
   "license": "MIT",
   "type": "module",

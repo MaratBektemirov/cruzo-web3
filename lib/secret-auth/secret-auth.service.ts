@@ -1,15 +1,26 @@
 import { AbstractService } from "cruzo";
 
+import type { SecretAuthMode } from "../types/secret-auth-state";
 import type { PubKey } from "../types/web3-types";
 import { generateEd25519KeyPair, signWithEd25519Key } from "./sign";
 import type { SecretAuthPubKey } from "./types";
 
 export class SecretAuthService extends AbstractService {
+  readonly mode$ = this.newRx<SecretAuthMode>("ephemeral");
   readonly ephemeralPubKey$ = this.newRx<PubKey | null>(null);
 
   private ephemeralPrivateKey: CryptoKey | null = null;
   private ephemeralKeyRequestId = 0;
   private ephemeralKeyRequest: Promise<PubKey> | null = null;
+
+  getMode(): SecretAuthMode {
+    return this.mode$.actual;
+  }
+
+  setMode(mode: SecretAuthMode) {
+    if (this.mode$.actual === mode) return;
+    this.mode$.update(mode);
+  }
 
   getEphemeralPubKey(): PubKey | null {
     return this.ephemeralPubKey$.actual;
