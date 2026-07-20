@@ -2,7 +2,7 @@ import type { SecretAuthChallenge, SecretAuthProof } from "../secret-auth/types"
 import type { PubKey } from "./web3-types";
 import type { SignerWallet } from "./signer-state";
 
-export type SecretAuthMode = "wallet" | "key" | "passkey";
+export type SecretAuthMode = "wallet" | "key" | "passkey" | "ephemeral";
 
 export type SecretAuthPasskeyCredential = {
   credentialId: string;

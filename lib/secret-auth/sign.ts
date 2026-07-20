@@ -207,6 +207,19 @@ export async function generateEd25519KeyPair(): Promise<{ publicKey: PubKey; pri
   };
 }
 
+export async function signWithEphemeralEd25519(
+  message: string,
+): Promise<{ pubKey: SecretAuthPubKey; signature: string; publicKey: PubKey }> {
+  const { publicKey, privateKey } = await generateEd25519KeyPair();
+  const signature = await signEd25519(privateKey, message);
+
+  return {
+    pubKey: pubKey.build("Ed25519", "raw", publicKey.value, publicKey.encoding),
+    signature,
+    publicKey,
+  };
+}
+
 export async function exportEd25519PrivateKeyBase64(privateKey: CryptoKey): Promise<string> {
   const pkcs8 = new Uint8Array(await crypto.subtle.exportKey("pkcs8", privateKey));
 
