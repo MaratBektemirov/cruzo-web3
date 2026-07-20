@@ -14,3 +14,4 @@ export type {
 
 export { formatSecretAuthChallenge, generateSecretAuthNonce } from "./challenge";
 export { verifySecretAuthProof, verifySecretAuthProofLocal } from "./verify";
+export { secretAuthService, SecretAuthService } from "./secret-auth.service";

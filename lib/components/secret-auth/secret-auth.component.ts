@@ -8,6 +8,7 @@ import "cruzo/ui-components/button-group";
 import "cruzo/ui-components/toast";
 
 import { CopyIconComponent } from "../icons/copy-icon.component";
+import { RefreshIconComponent } from "../icons/refresh-icon.component";
 import { Web3WalletPickerComponent } from "../web3-wallet-picker/web3-wallet-picker.component";
 import {
   WALLET_ACTIVE_SIGNER_ID,
@@ -22,9 +23,9 @@ import {
   exportEd25519PrivateKeyBase64,
   generateEd25519KeyPair,
   previewPublicKey,
-  signWithEphemeralEd25519,
   signWithPrivateKey,
 } from "../../secret-auth/sign";
+import { secretAuthService } from "../../secret-auth/secret-auth.service";
 import {
   getStoredWebAuthnCredential,
   isWebAuthnAvailable,
@@ -56,12 +57,13 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
     ButtonGroupComponent.selector,
     Web3WalletPickerComponent.selector,
     CopyIconComponent.selector,
+    RefreshIconComponent.selector,
   ]);
 
   title$ = this.newRx("SecretAuth");
   devMode$ = this.newRx(false);
   challengeText$ = this.newRx("");
-  mode$ = this.newRx<SecretAuthMode>("wallet");
+  mode$ = this.newRx<SecretAuthMode>("ephemeral");
   busy$ = this.newRx(false);
   error$ = this.newRx("");
   walletLabel$ = this.newRx("No wallet selected");
@@ -77,10 +79,10 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
     [MODE_COMPONENT_ID]: {
       config: ButtonGroupConfig({
         items: [
+          { label: "Ephemeral", value: "ephemeral" },
           { label: "Wallet", value: "wallet" },
           { label: "Key", value: "key" },
           { label: "Passkey", value: "passkey" },
-          { label: "Ephemeral", value: "ephemeral" },
         ],
       }),
     },
@@ -140,6 +142,38 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
         </div>
 
         <div class="${styles.panelStage}">
+          <div class="${styles.panel} ${styles.panelEnter}" attached="{{ root.mode$::rx === 'ephemeral' }}">
+            <p class="${styles.hint}">
+              A one-time key is ready. Sign the challenge when you want. The private key is never shown.
+            </p>
+            <div class="${styles.pubkeyRow}">
+              <span class="${styles.label}">PubKey</span>
+              <div class="${styles.pubkeyWithCopy}">
+                <code class="${styles.pubkeyValue}">{{ root.ephemeralPubKeyLabel$::rx }}</code>
+                <div
+                  class="${styles.copyBtn}"
+                  title="Copy PubKey"
+                  attached="{{ root.ephemeralPubKeyLabel$::rx !== '—' }}"
+                  onclick="{{ root.copyEphemeralPubKey(event.currentTarget) }}">
+                  <copy-icon></copy-icon>
+                </div>
+                <div
+                  class="${styles.copyBtn}"
+                  title="Refresh key"
+                  attached="{{ !root.state$::rx?.signed && !root.busy$::rx }}"
+                  onclick="{{ root.refreshEphemeralKey() }}">
+                  <refresh-icon></refresh-icon>
+                </div>
+              </div>
+            </div>
+            <div class="${styles.actions}">
+              <button type="button"
+                class="${k}_button ${k}_button-s ${k}_button-primary"
+                disabled="{{ root.busy$::rx || root.state$::rx?.signed || root.ephemeralPubKeyLabel$::rx === '—' }}"
+                onclick="{{ root.signWithEphemeral() }}">Sign challenge</button>
+            </div>
+          </div>
+
           <div class="${styles.panel} ${styles.panelEnter}" attached="{{ root.mode$::rx === 'wallet' }}">
             <p class="${styles.hint}">Connect a crypto wallet and sign the challenge.</p>
             <div class="${styles.pubkeyRow}">
@@ -191,13 +225,15 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
             </div>
             <div class="${styles.pubkeyRow}">
               <span class="${styles.label}">PubKey</span>
-              <code class="${styles.pubkeyValue}">{{ root.keyPubKeyLabel$::rx }}</code>
-              <div
-                class="${styles.copyBtn}"
-                title="Copy PubKey"
-                attached="{{ root.keyPubKeyLabel$::rx !== '—' }}"
-                onclick="{{ root.copyKeyPubKey(event.currentTarget) }}">
-                <copy-icon></copy-icon>
+              <div class="${styles.pubkeyWithCopy}">
+                <code class="${styles.pubkeyValue}">{{ root.keyPubKeyLabel$::rx }}</code>
+                <div
+                  class="${styles.copyBtn}"
+                  title="Copy PubKey"
+                  attached="{{ root.keyPubKeyLabel$::rx !== '—' }}"
+                  onclick="{{ root.copyKeyPubKey(event.currentTarget) }}">
+                  <copy-icon></copy-icon>
+                </div>
               </div>
             </div>
             <div class="${styles.actions}">
@@ -227,29 +263,6 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
                 onclick="{{ root.signWithPasskey() }}">Sign challenge</button>
             </div>
           </div>
-
-          <div class="${styles.panel} ${styles.panelEnter}" attached="{{ root.mode$::rx === 'ephemeral' }}">
-            <p class="${styles.hint}">
-              Generate a one-time key and sign the challenge in one step. The private key is never shown.
-            </p>
-            <div class="${styles.pubkeyRow}">
-              <span class="${styles.label}">PubKey</span>
-              <code class="${styles.pubkeyValue}">{{ root.ephemeralPubKeyLabel$::rx }}</code>
-              <div
-                class="${styles.copyBtn}"
-                title="Copy PubKey"
-                attached="{{ root.ephemeralPubKeyLabel$::rx !== '—' }}"
-                onclick="{{ root.copyEphemeralPubKey(event.currentTarget) }}">
-                <copy-icon></copy-icon>
-              </div>
-            </div>
-            <div class="${styles.actions}">
-              <button type="button"
-                class="${k}_button ${k}_button-s ${k}_button-primary"
-                disabled="{{ root.busy$::rx || root.state$::rx?.signed }}"
-                onclick="{{ root.signWithEphemeral() }}">Sign challenge</button>
-            </div>
-          </div>
         </div>
 
         <div class="${styles.proof} ${styles.panelEnter}"
@@ -269,7 +282,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
   connectedCallback() {
     componentsRegistryService.connectBucket(this.modeBucket);
-    this.modeBucket.setValue(MODE_COMPONENT_ID, "wallet");
+    this.modeBucket.setValue(MODE_COMPONENT_ID, "ephemeral");
     this.webauthnAvailable$.update(isWebAuthnAvailable());
     this.syncPasskeyLabel();
     super.connectedCallback();
@@ -277,6 +290,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
     this.applyChallenge(this.state$.actual);
     this.syncProofPreview(this.state$.actual);
     this.syncModeFromBucket(this.modeBucket.getValue(MODE_COMPONENT_ID));
+    this.prepareEphemeralKey();
 
     this.rxList ??= [];
 
@@ -288,7 +302,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
         this.syncModeFromBucket(value);
       },
       this.rxList,
-      "wallet",
+      "ephemeral",
     );
 
     this.newRxFunc((config) => {
@@ -307,7 +321,21 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
       if (state?.mode && state.mode !== this.mode$.actual) {
         this.setModeBucketValue(state.mode);
       }
+
+      if (this.mode$.actual === "ephemeral") {
+        this.prepareEphemeralKey();
+      }
     }, this.state$);
+
+    this.newRxFunc((pubKey) => {
+      if (this.mode$.actual !== "ephemeral" || this.state$.actual?.signed) return;
+
+      this.ephemeralPubKeyLabel$.update(pubKeyToText(pubKey));
+
+      if (pubKey) {
+        this.syncEphemeralPubKeyState(pubKey);
+      }
+    }, secretAuthService.ephemeralPubKey$);
   }
 
   private syncModeFromBucket(value: string | null | undefined) {
@@ -317,6 +345,10 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
     this.error$.update("");
     this.mode$.update(mode);
+
+    if (mode === "ephemeral") {
+      this.prepareEphemeralKey();
+    }
   }
 
   private parseMode(value: string | null | undefined): SecretAuthMode | null {
@@ -332,6 +364,63 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
     this.modeBucket.setValue(MODE_COMPONENT_ID, mode, "0", true);
     this.mode$.update(mode);
+
+    if (mode === "ephemeral") {
+      this.prepareEphemeralKey();
+    }
+  }
+
+  private clearEphemeralKey() {
+    secretAuthService.clearEphemeralKey();
+    this.ephemeralPubKeyLabel$.update("—");
+  }
+
+  private syncEphemeralPubKeyState(publicKey: NonNullable<SecretAuthState["pubKey"]>) {
+    const current = this.state$.actual;
+
+    if (
+      current?.mode === "ephemeral" &&
+      !current.signed &&
+      current.pubKey?.type === publicKey.type &&
+      current.pubKey?.value === publicKey.value &&
+      current.pubKey?.encoding === publicKey.encoding
+    ) {
+      return;
+    }
+
+    this.setPartialState({
+      pubKey: publicKey,
+      proof: null,
+      signed: false,
+      mode: "ephemeral",
+      wallet: null,
+      passkey: null,
+    });
+  }
+
+  private prepareEphemeralKey() {
+    if (this.mode$.actual !== "ephemeral") return;
+
+    if (this.state$.actual?.signed) {
+      if (this.state$.actual.pubKey) {
+        this.ephemeralPubKeyLabel$.update(pubKeyToText(this.state$.actual.pubKey));
+      }
+      return;
+    }
+
+    const existing = secretAuthService.getEphemeralPubKey();
+
+    if (existing) {
+      this.ephemeralPubKeyLabel$.update(pubKeyToText(existing));
+      this.syncEphemeralPubKeyState(existing);
+      return;
+    }
+
+    this.error$.update("");
+
+    secretAuthService.ensureEphemeralKey().catch((error: unknown) => {
+      this.error$.update(formatWalletError(error));
+    });
   }
 
   connectWallet() {
@@ -445,7 +534,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
     }
 
     this.runAction(async () => {
-      const { pubKey, signature, publicKey } = await signWithEphemeralEd25519(message);
+      const { pubKey, signature, publicKey } = await secretAuthService.signEphemeral(message);
 
       this.ephemeralPubKeyLabel$.update(pubKeyToText(publicKey));
 
@@ -541,6 +630,17 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
     this.copyText(label, "Public key copied", el);
   }
 
+  refreshEphemeralKey() {
+    if (this.state$.actual?.signed || this.busy$.actual) return;
+
+    this.error$.update("");
+    this.ephemeralPubKeyLabel$.update("—");
+
+    secretAuthService.refreshEphemeralKey().catch((error: unknown) => {
+      this.error$.update(formatWalletError(error));
+    });
+  }
+
   copyPrivateKey(el?: Element) {
     const privateKey = (this.privateKey$.actual ?? "").trim();
 
@@ -603,7 +703,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
       if (prevMessage && prevMessage !== nextMessage) {
         this.selectedWallet = null;
         this.walletLabel$.update("No wallet selected");
-        this.ephemeralPubKeyLabel$.update("—");
+        this.clearEphemeralKey();
 
         this.setPartialState({
           proof: null,
@@ -611,6 +711,10 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
           pubKey: null,
           wallet: null,
         });
+
+        if (this.mode$.actual === "ephemeral") {
+          this.prepareEphemeralKey();
+        }
       }
     } catch (error) {
       this.challengeText$.update("");

@@ -207,10 +207,11 @@ export async function generateEd25519KeyPair(): Promise<{ publicKey: PubKey; pri
   };
 }
 
-export async function signWithEphemeralEd25519(
+export async function signWithEd25519Key(
+  privateKey: CryptoKey,
+  publicKey: PubKey,
   message: string,
 ): Promise<{ pubKey: SecretAuthPubKey; signature: string; publicKey: PubKey }> {
-  const { publicKey, privateKey } = await generateEd25519KeyPair();
   const signature = await signEd25519(privateKey, message);
 
   return {
@@ -218,6 +219,14 @@ export async function signWithEphemeralEd25519(
     signature,
     publicKey,
   };
+}
+
+export async function signWithEphemeralEd25519(
+  message: string,
+): Promise<{ pubKey: SecretAuthPubKey; signature: string; publicKey: PubKey }> {
+  const { publicKey, privateKey } = await generateEd25519KeyPair();
+
+  return signWithEd25519Key(privateKey, publicKey, message);
 }
 
 export async function exportEd25519PrivateKeyBase64(privateKey: CryptoKey): Promise<string> {
