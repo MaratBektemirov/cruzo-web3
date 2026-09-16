@@ -1,6 +1,6 @@
 import styles from "./web3-wallet-picker.component.module.css";
 
-import { AbstractComponent, componentsRegistryService } from "cruzo";
+import { AbstractComponent, componentsRegistryService, i18nService } from "cruzo";
 
 import { hasInjectedWallet } from "../../providers/injected";
 import type { WalletKind } from "../../providers/wallet";
@@ -8,6 +8,7 @@ import type { WalletTransport } from "../../providers/wallet-transport";
 import { web3Service } from "../../web3.service";
 import type { Web3WalletTarget } from "../../web3-wallet";
 import { WALLET_MODAL_ID, WALLET_PICKER_ID } from "./web3-wallet-picker.bucket";
+import i18n from "./web3-wallet-picker.component.i18n.json";
 
 declare global {
   interface BucketEventMap {
@@ -18,6 +19,8 @@ declare global {
 export class Web3WalletPickerComponent extends AbstractComponent {
   static selector = "web3-wallet-picker-component";
   hasOuterBucket = true;
+
+  i18n$ = i18nService.connect(this, i18n);
 
   ethSectionVisible$ = this.newRx(false);
   ethExtVisible$ = this.newRx(false);
@@ -43,68 +46,68 @@ export class Web3WalletPickerComponent extends AbstractComponent {
 
   getHTML() {
     return `<div class="${styles.picker}">
-        <h3 class="${styles.title}">Connect wallet</h3>
+        <h3 class="${styles.title}">{{ root.i18n$::rx.title }}</h3>
 
         <div class="${styles.section}" attached="{{ root.ethSectionVisible$::rx }}">
-          <h4 class="${styles.sectionTitle}">Ethereum</h4>
+          <h4 class="${styles.sectionTitle}">{{ root.i18n$::rx.ethereum }}</h4>
           <button type="button" class="${styles.option}"
             attached="{{ root.ethExtVisible$::rx }}"
             disabled="{{ !root.ethExtAvailable$::rx }}"
             onclick="{{ root.pick('ethereum', 'extension') }}">
-            <span class="${styles.optionLabel}">Browser extension</span>
-            <span class="${styles.optionHint}">MetaMask, Rabby and other EIP-1193 wallets</span>
+            <span class="${styles.optionLabel}">{{ root.i18n$::rx.browserExtension }}</span>
+            <span class="${styles.optionHint}">{{ root.i18n$::rx.ethExtHint }}</span>
           </button>
           <button type="button" class="${styles.option}"
             attached="{{ root.ethAppVisible$::rx }}"
             disabled="{{ !root.ethAppAvailable$::rx }}"
             onclick="{{ root.pick('ethereum', 'app') }}">
-            <span class="${styles.optionLabel}">Mobile wallet</span>
-            <span class="${styles.optionHint}">WalletConnect</span>
+            <span class="${styles.optionLabel}">{{ root.i18n$::rx.mobileWallet }}</span>
+            <span class="${styles.optionHint}">{{ root.i18n$::rx.ethAppHint }}</span>
           </button>
         </div>
 
         <div class="${styles.section}" attached="{{ root.tonSectionVisible$::rx }}">
-          <h4 class="${styles.sectionTitle}">TON</h4>
+          <h4 class="${styles.sectionTitle}">{{ root.i18n$::rx.ton }}</h4>
           <button type="button" class="${styles.option}"
             attached="{{ root.tonExtVisible$::rx }}"
             disabled="{{ !root.tonExtAvailable$::rx }}"
             onclick="{{ root.pick('ton', 'extension') }}">
-            <span class="${styles.optionLabel}">Browser extension</span>
-            <span class="${styles.optionHint}">Tonkeeper and other TON wallets</span>
+            <span class="${styles.optionLabel}">{{ root.i18n$::rx.browserExtension }}</span>
+            <span class="${styles.optionHint}">{{ root.i18n$::rx.tonExtHint }}</span>
           </button>
           <button type="button" class="${styles.option}"
             attached="{{ root.tonAppVisible$::rx }}"
             disabled="{{ !root.tonAppAvailable$::rx }}"
             onclick="{{ root.pick('ton', 'app') }}">
-            <span class="${styles.optionLabel}">Mobile wallet</span>
-            <span class="${styles.optionHint}">Tonkeeper app via Ton Connect</span>
+            <span class="${styles.optionLabel}">{{ root.i18n$::rx.mobileWallet }}</span>
+            <span class="${styles.optionHint}">{{ root.i18n$::rx.tonAppHint }}</span>
           </button>
         </div>
 
         <div class="${styles.section}" attached="{{ root.solSectionVisible$::rx }}">
-          <h4 class="${styles.sectionTitle}">Solana</h4>
+          <h4 class="${styles.sectionTitle}">{{ root.i18n$::rx.solana }}</h4>
           <button type="button" class="${styles.option}"
             attached="{{ root.solExtVisible$::rx }}"
             disabled="{{ !root.solExtAvailable$::rx }}"
             onclick="{{ root.pick('solana', 'extension') }}">
-            <span class="${styles.optionLabel}">Browser extension</span>
-            <span class="${styles.optionHint}">Phantom and other Solana wallets</span>
+            <span class="${styles.optionLabel}">{{ root.i18n$::rx.browserExtension }}</span>
+            <span class="${styles.optionHint}">{{ root.i18n$::rx.solExtHint }}</span>
           </button>
         </div>
 
         <div class="${styles.section}" attached="{{ root.tronSectionVisible$::rx }}">
-          <h4 class="${styles.sectionTitle}">Tron</h4>
+          <h4 class="${styles.sectionTitle}">{{ root.i18n$::rx.tron }}</h4>
           <button type="button" class="${styles.option}"
             attached="{{ root.tronExtVisible$::rx }}"
             disabled="{{ !root.tronExtAvailable$::rx }}"
             onclick="{{ root.pick('tron', 'extension') }}">
-            <span class="${styles.optionLabel}">Browser extension</span>
-            <span class="${styles.optionHint}">TronLink</span>
+            <span class="${styles.optionLabel}">{{ root.i18n$::rx.browserExtension }}</span>
+            <span class="${styles.optionHint}">{{ root.i18n$::rx.tronExtHint }}</span>
           </button>
         </div>
 
         <div class="${styles.section}" attached="{{ root.customOptions$::rx?.length }}">
-          <h4 class="${styles.sectionTitle}">Custom</h4>
+          <h4 class="${styles.sectionTitle}">{{ root.i18n$::rx.custom }}</h4>
           <button type="button" class="${styles.option}"
             repeat="{{ root.customOptions$::rx }}"
             onclick="{{ root.pickCustom(repeat.id) }}">

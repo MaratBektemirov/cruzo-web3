@@ -1,6 +1,6 @@
 import styles from "./web3-signer.component.module.css";
 
-import { AbstractComponent, componentsRegistryService, routerService, toastService } from "cruzo";
+import { AbstractComponent, componentsRegistryService, i18nService, routerService, toastService } from "cruzo";
 import { UI_KIT } from "cruzo/ui-components/const";
 import { ModalComponent } from "cruzo/ui-components/modal";
 import "cruzo/ui-components/toast";
@@ -19,6 +19,7 @@ import { pubKeyToText } from "../../utils/format-pub-key";
 import { formatWalletError, isWalletUserCancellation } from "../../utils/wallet-error";
 import { web3Service } from "../../web3.service";
 import { isCustomWallet } from "../../web3-wallet";
+import i18n from "./web3-signer.component.i18n.json";
 
 export interface SignerConfig {
   payload: string;
@@ -37,8 +38,10 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
     CopyIconComponent.selector,
   ]);
 
+  i18n$ = i18nService.connect(this, i18n);
+
   title$ = this.newRx("");
-  walletLabel$ = this.newRx("No wallet selected");
+  walletLabel$ = this.newRx(String(i18n.en.noWalletSelected));
   busy$ = this.newRx(false);
   error$ = this.newRx("");
   pubKeyLabel$ = this.newRx("—");
@@ -75,22 +78,22 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
           <span class="${styles.status} ${styles.statusSigned}"
             attached="{{ root.state$::rx?.signed }}">
             <span class="${styles.check}" aria-hidden="true">✓</span>
-            <span>Signed</span>
+            <span>{{ root.i18n$::rx.signed }}</span>
           </span>
           <span class="${styles.status}"
             attached="{{ !root.state$::rx?.signed }}">
             <span class="${styles.check}" aria-hidden="true">✓</span>
-            <span>Not signed</span>
+            <span>{{ root.i18n$::rx.notSigned }}</span>
           </span>
         </div>
 
         <div class="${styles.pubkey}">
-          <span class="${styles.label}">PubKey</span>
+          <span class="${styles.label}">{{ root.i18n$::rx.pubKey }}</span>
           <div class="${styles.pubkeyRow}">
             <code class="${styles.value}">{{ root.pubKeyLabel$::rx }}</code>
             <div
               class="${styles.copyBtn}"
-              title="Copy PubKey"
+              title="{{ root.i18n$::rx.copyPubKey }}"
               attached="{{ root.state$::rx?.pubKey }}"
               onclick="{{ root.copyPubKey(event.currentTarget) }}">
               <copy-icon></copy-icon>
@@ -102,11 +105,11 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
           <button type="button"
             class="${UI_KIT}_button ${UI_KIT}_button-s ${UI_KIT}_button-secondary"
             disabled="{{ root.busy$::rx }}"
-            onclick="{{ root.connect() }}">Connect wallet</button>
+            onclick="{{ root.connect() }}">{{ root.i18n$::rx.connectWallet }}</button>
           <button type="button"
             class="${UI_KIT}_button ${UI_KIT}_button-s ${UI_KIT}_button-primary"
             disabled="{{ root.busy$::rx || !root.state$::rx?.pubKey || root.state$::rx?.signed }}"
-            onclick="{{ root.sign(event.currentTarget) }}">Sign payload</button>
+            onclick="{{ root.sign(event.currentTarget) }}">{{ root.i18n$::rx.signPayload }}</button>
         </div>
 
         <p class="${styles.error}" attached="{{ root.error$::rx }}">{{ root.error$::rx }}</p>
@@ -120,15 +123,16 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
   }
 
   sign(el?: Element) {
+    const t = this.i18n$.actual;
     const payload = this.config$.actual?.payload;
 
     if (!payload) {
-      this.error$.update("Payload is not configured");
+      this.error$.update(String(t.payloadNotConfigured));
       return;
     }
 
     if (!this.state$.actual?.pubKey) {
-      this.error$.update("Connect wallet first");
+      this.error$.update(String(t.connectWalletFirst));
       return;
     }
 
@@ -139,7 +143,7 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
         this.selectedWallet = wallet;
         this.walletLabel$.update(web3Service.getWalletLabel(wallet));
       } else {
-        this.error$.update("Reconnect wallet to sign");
+        this.error$.update(String(t.reconnectWalletToSign));
         this.connect();
         return;
       }
@@ -168,8 +172,8 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
           .then(() => {
             toastService.show({
               kind: "success",
-              title: "Signing successful",
-              message: "URL copied — you can send it to someone else.",
+              title: String(t.signingSuccessful),
+              message: String(t.urlCopied),
               alignX: "center",
               alignY: "top",
               timeoutMs: 0,
@@ -178,8 +182,8 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
           .catch(() => {
             toastService.show({
               kind: "success",
-              title: "Signing successful",
-              message: "You can copy the page URL and send it to someone else.",
+              title: String(t.signingSuccessful),
+              message: String(t.copyUrlHint),
               alignX: "center",
               alignY: "top",
               timeoutMs: 0,
@@ -194,15 +198,22 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
 
     this.title$.update(this.config$.actual?.title ?? this.id);
     this.applyWalletFromState(this.state$.actual);
+    this.syncIdleWalletLabel();
 
     this.newRxFunc((state) => {
       this.pubKeyLabel$.update(pubKeyToText(state?.pubKey ?? null));
       this.applyWalletFromState(state);
+      this.syncIdleWalletLabel();
     }, this.state$);
+
+    this.newRxFunc(() => {
+      this.syncIdleWalletLabel();
+    }, this.i18n$);
   }
 
   copyPubKey(el?: Element) {
     const pubKey = this.state$.actual?.pubKey;
+    const t = this.i18n$.actual;
 
     if (!pubKey?.value) return;
 
@@ -211,7 +222,7 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
       .then(() => {
         toastService.show({
           kind: "success",
-          message: "Public key copied",
+          message: String(t.publicKeyCopied),
           element: el ?? null,
           alignX: "right",
           alignY: "top",
@@ -221,13 +232,19 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
       .catch(() => {
         toastService.show({
           kind: "error",
-          message: "Copy failed",
+          message: String(t.copyFailed),
           element: el ?? null,
           alignX: "right",
           alignY: "top",
           timeoutMs: 2200,
         });
       });
+  }
+
+  private syncIdleWalletLabel() {
+    if (this.selectedWallet || this.state$.actual?.wallet) return;
+
+    this.walletLabel$.update(String(this.i18n$.actual.noWalletSelected));
   }
 
   private buildSigningSnapshot(): Record<string, SignerState> {
@@ -262,7 +279,7 @@ export class Web3SignerComponent extends AbstractComponent<SignerConfig, any, Si
 
     try {
       if (!document.execCommand("copy")) {
-        return Promise.reject(new Error("Copy failed"));
+        return Promise.reject(new Error(String(this.i18n$.actual.copyFailed)));
       }
 
       return Promise.resolve();

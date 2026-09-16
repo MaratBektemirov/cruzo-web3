@@ -1,0 +1,11 @@
+{
+  "en": {
+    "walletRequestFailed": "Wallet request failed"
+  },
+  "ru": {
+    "walletRequestFailed": "Запрос к кошельку не выполнен"
+  },
+  "fr": {
+    "walletRequestFailed": "La requête au portefeuille a échoué"
+  }
+}

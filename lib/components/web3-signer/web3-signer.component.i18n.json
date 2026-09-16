@@ -1,0 +1,53 @@
+{
+  "en": {
+    "noWalletSelected": "No wallet selected",
+    "signed": "Signed",
+    "notSigned": "Not signed",
+    "pubKey": "PubKey",
+    "copyPubKey": "Copy PubKey",
+    "connectWallet": "Connect wallet",
+    "signPayload": "Sign payload",
+    "payloadNotConfigured": "Payload is not configured",
+    "connectWalletFirst": "Connect wallet first",
+    "reconnectWalletToSign": "Reconnect wallet to sign",
+    "signingSuccessful": "Signing successful",
+    "urlCopied": "URL copied — you can send it to someone else.",
+    "copyUrlHint": "You can copy the page URL and send it to someone else.",
+    "publicKeyCopied": "Public key copied",
+    "copyFailed": "Copy failed"
+  },
+  "ru": {
+    "noWalletSelected": "Кошелёк не выбран",
+    "signed": "Подписано",
+    "notSigned": "Не подписано",
+    "pubKey": "PubKey",
+    "copyPubKey": "Копировать PubKey",
+    "connectWallet": "Подключить кошелёк",
+    "signPayload": "Подписать payload",
+    "payloadNotConfigured": "Payload не настроен",
+    "connectWalletFirst": "Сначала подключите кошелёк",
+    "reconnectWalletToSign": "Подключите кошелёк заново для подписи",
+    "signingSuccessful": "Подпись успешна",
+    "urlCopied": "URL скопирован — можете отправить его другому человеку.",
+    "copyUrlHint": "Скопируйте URL страницы и отправьте его другому человеку.",
+    "publicKeyCopied": "Публичный ключ скопирован",
+    "copyFailed": "Не удалось скопировать"
+  },
+  "fr": {
+    "noWalletSelected": "Aucun portefeuille sélectionné",
+    "signed": "Signé",
+    "notSigned": "Non signé",
+    "pubKey": "PubKey",
+    "copyPubKey": "Copier la PubKey",
+    "connectWallet": "Connecter un portefeuille",
+    "signPayload": "Signer le payload",
+    "payloadNotConfigured": "Le payload n'est pas configuré",
+    "connectWalletFirst": "Connectez d'abord un portefeuille",
+    "reconnectWalletToSign": "Reconnectez le portefeuille pour signer",
+    "signingSuccessful": "Signature réussie",
+    "urlCopied": "URL copiée — vous pouvez l'envoyer à quelqu'un d'autre.",
+    "copyUrlHint": "Vous pouvez copier l'URL de la page et l'envoyer à quelqu'un d'autre.",
+    "publicKeyCopied": "Clé publique copiée",
+    "copyFailed": "Échec de la copie"
+  }
+}

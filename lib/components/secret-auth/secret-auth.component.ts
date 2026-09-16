@@ -1,6 +1,6 @@
 import styles from "./secret-auth.component.module.css";
 
-import { AbstractComponent, componentsRegistryService, RxBucket, toastService } from "cruzo";
+import { AbstractComponent, componentsRegistryService, i18nService, RxBucket, toastService } from "cruzo";
 import { UI_KIT } from "cruzo/ui-components/const";
 import { ButtonGroupComponent, ButtonGroupConfig } from "cruzo/ui-components/button-group";
 import { ModalComponent } from "cruzo/ui-components/modal";
@@ -38,6 +38,7 @@ import { pubKeyToText } from "../../utils/format-pub-key";
 import { formatWalletError, isWalletUserCancellation } from "../../utils/wallet-error";
 import { web3Service } from "../../web3.service";
 import { isCustomWallet, isBuiltinWallet } from "../../web3-wallet";
+import i18n from "./secret-auth.component.i18n.json";
 
 export interface SecretAuthConfig {
   title?: string;
@@ -60,29 +61,31 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
     RefreshIconComponent.selector,
   ]);
 
-  title$ = this.newRx("SecretAuth");
+  i18n$ = i18nService.connect(this, i18n);
+
+  title$ = this.newRx(String(i18n.en.defaultTitle));
   devMode$ = this.newRx(false);
   challengeText$ = this.newRx("");
   mode$ = this.newRx<SecretAuthMode>("ephemeral");
   busy$ = this.newRx(false);
   error$ = this.newRx("");
-  walletLabel$ = this.newRx("No wallet selected");
+  walletLabel$ = this.newRx(String(i18n.en.noWalletSelected));
   pubKeyLabel$ = this.newRx("—");
   proofJson$ = this.newRx("");
   privateKey$ = this.newRx("");
   keyPubKeyLabel$ = this.newRx("—");
   ephemeralPubKeyLabel$ = this.newRx("—");
-  passkeyLabel$ = this.newRx("No passkey");
+  passkeyLabel$ = this.newRx(String(i18n.en.noPasskey));
   webauthnAvailable$ = this.newRx(isWebAuthnAvailable());
 
   modeBucket = new RxBucket({
     [MODE_COMPONENT_ID]: {
       config: ButtonGroupConfig({
         items: [
-          { label: "Ephemeral", value: "ephemeral" },
-          { label: "Wallet", value: "wallet" },
-          { label: "Key", value: "key" },
-          { label: "Passkey", value: "passkey" },
+          { label: String(i18n.en.modeEphemeral), value: "ephemeral" },
+          { label: String(i18n.en.modeWallet), value: "wallet" },
+          { label: String(i18n.en.modeKey), value: "key" },
+          { label: String(i18n.en.modePasskey), value: "passkey" },
         ],
       }),
     },
@@ -120,17 +123,17 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
           <span class="${styles.status} ${styles.statusVerified}"
             attached="{{ root.state$::rx?.signed }}">
             <span class="${styles.check}" aria-hidden="true">✓</span>
-            <span>Signed</span>
+            <span>{{ root.i18n$::rx.signed }}</span>
           </span>
           <span class="${styles.status}"
             attached="{{ !root.state$::rx?.signed }}">
             <span class="${styles.check}" aria-hidden="true">✓</span>
-            <span>Not signed</span>
+            <span>{{ root.i18n$::rx.notSigned }}</span>
           </span>
         </div>
 
         <div class="${styles.challenge}">
-          <span class="${styles.label}">Challenge</span>
+          <span class="${styles.label}">{{ root.i18n$::rx.challenge }}</span>
           <pre class="${styles.challengeText}">{{ root.challengeText$::rx }}</pre>
         </div>
 
@@ -143,23 +146,21 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
         <div class="${styles.panelStage}">
           <div class="${styles.panel} ${styles.panelEnter}" attached="{{ root.mode$::rx === 'ephemeral' }}">
-            <p class="${styles.hint}">
-              A one-time key is ready. Sign the challenge when you want. The private key is never shown.
-            </p>
+            <p class="${styles.hint}">{{ root.i18n$::rx.ephemeralHint }}</p>
             <div class="${styles.pubkeyRow}">
-              <span class="${styles.label}">PubKey</span>
+              <span class="${styles.label}">{{ root.i18n$::rx.pubKey }}</span>
               <div class="${styles.pubkeyWithCopy}">
                 <code class="${styles.pubkeyValue}">{{ root.ephemeralPubKeyLabel$::rx }}</code>
                 <div
                   class="${styles.copyBtn}"
-                  title="Copy PubKey"
+                  title="{{ root.i18n$::rx.copyPubKey }}"
                   attached="{{ root.ephemeralPubKeyLabel$::rx !== '—' }}"
                   onclick="{{ root.copyEphemeralPubKey(event.currentTarget) }}">
                   <copy-icon></copy-icon>
                 </div>
                 <div
                   class="${styles.copyBtn}"
-                  title="Refresh key"
+                  title="{{ root.i18n$::rx.refreshKey }}"
                   attached="{{ !root.state$::rx?.signed && !root.busy$::rx }}"
                   onclick="{{ root.refreshEphemeralKey() }}">
                   <refresh-icon></refresh-icon>
@@ -170,42 +171,40 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
               <button type="button"
                 class="${k}_button ${k}_button-s ${k}_button-primary"
                 disabled="{{ root.busy$::rx || root.state$::rx?.signed || root.ephemeralPubKeyLabel$::rx === '—' }}"
-                onclick="{{ root.signWithEphemeral() }}">Sign challenge</button>
+                onclick="{{ root.signWithEphemeral() }}">{{ root.i18n$::rx.signChallenge }}</button>
             </div>
           </div>
 
           <div class="${styles.panel} ${styles.panelEnter}" attached="{{ root.mode$::rx === 'wallet' }}">
-            <p class="${styles.hint}">Connect a crypto wallet and sign the challenge.</p>
+            <p class="${styles.hint}">{{ root.i18n$::rx.walletHint }}</p>
             <div class="${styles.pubkeyRow}">
-              <span class="${styles.label}">Wallet</span>
+              <span class="${styles.label}">{{ root.i18n$::rx.wallet }}</span>
               <span class="${styles.pubkeyValue}">{{ root.walletLabel$::rx }}</span>
             </div>
             <div class="${styles.pubkeyRow}">
-              <span class="${styles.label}">PubKey</span>
+              <span class="${styles.label}">{{ root.i18n$::rx.pubKey }}</span>
               <code class="${styles.pubkeyValue}">{{ root.pubKeyLabel$::rx }}</code>
             </div>
             <div class="${styles.actions}">
               <button type="button"
                 class="${k}_button ${k}_button-s ${k}_button-secondary"
                 disabled="{{ root.busy$::rx || root.state$::rx?.signed }}"
-                onclick="{{ root.connectWallet() }}">Connect wallet</button>
+                onclick="{{ root.connectWallet() }}">{{ root.i18n$::rx.connectWallet }}</button>
               <button type="button"
                 class="${k}_button ${k}_button-s ${k}_button-primary"
                 disabled="{{ root.busy$::rx || !root.state$::rx?.pubKey || root.state$::rx?.signed }}"
-                onclick="{{ root.signWithWallet() }}">Sign challenge</button>
+                onclick="{{ root.signWithWallet() }}">{{ root.i18n$::rx.signChallenge }}</button>
             </div>
           </div>
 
           <div class="${styles.panel} ${styles.panelEnter}" attached="{{ root.mode$::rx === 'key' }}">
-            <p class="${styles.hint}">
-              Paste a private key or generate one. Public key is derived from the private key.
-            </p>
+            <p class="${styles.hint}">{{ root.i18n$::rx.keyHint }}</p>
             <div class="${styles.field}">
               <div class="${styles.fieldHead}">
-                <span class="${styles.label}">Private key</span>
+                <span class="${styles.label}">{{ root.i18n$::rx.privateKey }}</span>
                 <div
                   class="${styles.copyBtn}"
-                  title="Copy private key"
+                  title="{{ root.i18n$::rx.copyPrivateKey }}"
                   attached="{{ root.privateKey$::rx }}"
                   onclick="{{ root.copyPrivateKey(event.currentTarget) }}">
                   <copy-icon></copy-icon>
@@ -214,22 +213,22 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
               <textarea
                 class="${k}_textarea ${styles.textarea}"
                 rows="3"
-                placeholder="base64 / hex seed, PKCS8, or JWK JSON"
+                placeholder="{{ root.i18n$::rx.privateKeyPlaceholder }}"
                 oninput="{{ root.onPrivateKeyInput(event.currentTarget) }}">{{ root.privateKey$::rx }}</textarea>
               <div class="${styles.fieldActions}">
                 <button type="button"
                   class="${k}_button ${k}_button-s ${k}_button-secondary"
                   disabled="{{ root.busy$::rx || root.state$::rx?.signed }}"
-                  onclick="{{ root.generateKey() }}">Generate</button>
+                  onclick="{{ root.generateKey() }}">{{ root.i18n$::rx.generate }}</button>
               </div>
             </div>
             <div class="${styles.pubkeyRow}">
-              <span class="${styles.label}">PubKey</span>
+              <span class="${styles.label}">{{ root.i18n$::rx.pubKey }}</span>
               <div class="${styles.pubkeyWithCopy}">
                 <code class="${styles.pubkeyValue}">{{ root.keyPubKeyLabel$::rx }}</code>
                 <div
                   class="${styles.copyBtn}"
-                  title="Copy PubKey"
+                  title="{{ root.i18n$::rx.copyPubKey }}"
                   attached="{{ root.keyPubKeyLabel$::rx !== '—' }}"
                   onclick="{{ root.copyKeyPubKey(event.currentTarget) }}">
                   <copy-icon></copy-icon>
@@ -240,39 +239,37 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
               <button type="button"
                 class="${k}_button ${k}_button-s ${k}_button-primary"
                 disabled="{{ root.busy$::rx || root.state$::rx?.signed }}"
-                onclick="{{ root.signWithKey() }}">Sign challenge</button>
+                onclick="{{ root.signWithKey() }}">{{ root.i18n$::rx.signChallenge }}</button>
             </div>
           </div>
 
           <div class="${styles.panel} ${styles.panelEnter}" attached="{{ root.mode$::rx === 'passkey' }}">
-            <p class="${styles.hint}">
-              Sign with a device passkey (WebAuthn). Create one first, then sign the challenge.
-            </p>
+            <p class="${styles.hint}">{{ root.i18n$::rx.passkeyHint }}</p>
             <div class="${styles.pubkeyRow}">
-              <span class="${styles.label}">Passkey</span>
+              <span class="${styles.label}">{{ root.i18n$::rx.passkey }}</span>
               <span class="${styles.pubkeyValue}">{{ root.passkeyLabel$::rx }}</span>
             </div>
             <div class="${styles.actions}">
               <button type="button"
                 class="${k}_button ${k}_button-s ${k}_button-secondary"
                 disabled="{{ root.busy$::rx || root.state$::rx?.signed || !root.webauthnAvailable$::rx }}"
-                onclick="{{ root.createPasskey() }}">Create passkey</button>
+                onclick="{{ root.createPasskey() }}">{{ root.i18n$::rx.createPasskey }}</button>
               <button type="button"
                 class="${k}_button ${k}_button-s ${k}_button-primary"
                 disabled="{{ root.busy$::rx || root.state$::rx?.signed || !root.webauthnAvailable$::rx }}"
-                onclick="{{ root.signWithPasskey() }}">Sign challenge</button>
+                onclick="{{ root.signWithPasskey() }}">{{ root.i18n$::rx.signChallenge }}</button>
             </div>
           </div>
         </div>
 
         <div class="${styles.proof} ${styles.panelEnter}"
           attached="{{ root.devMode$::rx && root.state$::rx?.proof }}">
-          <span class="${styles.label}">SecretAuth proof</span>
+          <span class="${styles.label}">{{ root.i18n$::rx.proofLabel }}</span>
           <pre class="${styles.proofJson}">{{ root.proofJson$::rx }}</pre>
           <div class="${styles.actions}">
             <button type="button"
               class="${k}_button ${k}_button-s ${k}_button-secondary"
-              onclick="{{ root.copyProof(event.currentTarget) }}">Copy proof JSON</button>
+              onclick="{{ root.copyProof(event.currentTarget) }}">{{ root.i18n$::rx.copyProofJson }}</button>
           </div>
         </div>
 
@@ -336,6 +333,42 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
         this.syncEphemeralPubKeyState(pubKey);
       }
     }, secretAuthService.ephemeralPubKey$);
+
+    this.newRxFunc(() => {
+      this.syncModeLabels();
+      this.syncIdleWalletLabel();
+      this.syncPasskeyLabel();
+      this.applyConfig(this.config$.actual);
+    }, this.i18n$);
+
+    this.syncModeLabels();
+  }
+
+  private syncModeLabels() {
+    const t = this.i18n$.actual;
+    const current = this.modeBucket.getValue(MODE_COMPONENT_ID) ?? this.mode$.actual;
+
+    this.modeBucket.setConfig(
+      MODE_COMPONENT_ID,
+      ButtonGroupConfig({
+        items: [
+          { label: String(t.modeEphemeral), value: "ephemeral" },
+          { label: String(t.modeWallet), value: "wallet" },
+          { label: String(t.modeKey), value: "key" },
+          { label: String(t.modePasskey), value: "passkey" },
+        ],
+      }),
+    );
+
+    if (current) {
+      this.modeBucket.setValue(MODE_COMPONENT_ID, current, "0", true);
+    }
+  }
+
+  private syncIdleWalletLabel() {
+    if (this.selectedWallet || this.state$.actual?.wallet) return;
+
+    this.walletLabel$.update(String(this.i18n$.actual.noWalletSelected));
   }
 
   private syncModeFromBucket(value: string | null | undefined) {
@@ -433,16 +466,17 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
   signWithWallet() {
     const message = this.challengeText$.actual;
+    const t = this.i18n$.actual;
 
     if (!message) {
-      this.error$.update("Challenge is not configured");
+      this.error$.update(String(t.challengeNotConfigured));
       return;
     }
 
     const pubKey = this.state$.actual?.pubKey;
 
     if (!pubKey) {
-      this.error$.update("Connect wallet first");
+      this.error$.update(String(t.connectWalletFirst));
       return;
     }
 
@@ -453,7 +487,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
         this.selectedWallet = wallet;
         this.walletLabel$.update(web3Service.getWalletLabel(wallet));
       } else {
-        this.error$.update("Reconnect wallet to sign");
+        this.error$.update(String(t.reconnectWalletToSign));
         this.connectWallet();
         return;
       }
@@ -498,14 +532,15 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
   signWithKey() {
     const message = this.challengeText$.actual;
     const privateKey = (this.privateKey$.actual ?? "").trim();
+    const t = this.i18n$.actual;
 
     if (!message) {
-      this.error$.update("Challenge is not configured");
+      this.error$.update(String(t.challengeNotConfigured));
       return;
     }
 
     if (!privateKey) {
-      this.error$.update("Private key is required");
+      this.error$.update(String(t.privateKeyRequired));
       return;
     }
 
@@ -531,7 +566,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
     const message = this.challengeText$.actual;
 
     if (!message) {
-      this.error$.update("Challenge is not configured");
+      this.error$.update(String(this.i18n$.actual.challengeNotConfigured));
       return;
     }
 
@@ -555,7 +590,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
   createPasskey() {
     if (!isWebAuthnAvailable()) {
-      this.error$.update("WebAuthn is not available in this browser");
+      this.error$.update(String(this.i18n$.actual.webauthnUnavailable));
       return;
     }
 
@@ -577,19 +612,20 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
   signWithPasskey() {
     const message = this.challengeText$.actual;
+    const t = this.i18n$.actual;
 
     if (!message) {
-      this.error$.update("Challenge is not configured");
+      this.error$.update(String(t.challengeNotConfigured));
       return;
     }
 
     if (!isWebAuthnAvailable()) {
-      this.error$.update("WebAuthn is not available in this browser");
+      this.error$.update(String(t.webauthnUnavailable));
       return;
     }
 
     if (!getStoredWebAuthnCredential()) {
-      this.error$.update("Create a passkey first");
+      this.error$.update(String(t.createPasskeyFirst));
       return;
     }
 
@@ -612,8 +648,9 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
   private syncPasskeyLabel() {
     const stored = getStoredWebAuthnCredential();
+    const t = this.i18n$.actual;
 
-    this.passkeyLabel$.update(stored ? "Ready" : "No passkey");
+    this.passkeyLabel$.update(stored ? String(t.passkeyReady) : String(t.noPasskey));
   }
 
   copyKeyPubKey(el?: Element) {
@@ -621,7 +658,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
     if (!label || label === "—") return;
 
-    this.copyText(label, "Public key copied", el);
+    this.copyText(label, String(this.i18n$.actual.publicKeyCopied), el);
   }
 
   copyEphemeralPubKey(el?: Element) {
@@ -629,7 +666,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
     if (!label || label === "—") return;
 
-    this.copyText(label, "Public key copied", el);
+    this.copyText(label, String(this.i18n$.actual.publicKeyCopied), el);
   }
 
   refreshEphemeralKey() {
@@ -648,7 +685,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
     if (!privateKey) return;
 
-    this.copyText(privateKey, "Private key copied", el);
+    this.copyText(privateKey, String(this.i18n$.actual.privateKeyCopied), el);
   }
 
   copyPubKey(el?: Element) {
@@ -656,7 +693,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
     if (!pubKey?.value) return;
 
-    this.copyText(pubKeyToText(pubKey), "Public key copied", el);
+    this.copyText(pubKeyToText(pubKey), String(this.i18n$.actual.publicKeyCopied), el);
   }
 
   copyProof(el?: Element) {
@@ -664,7 +701,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
     if (!proof) return;
 
-    this.copyText(JSON.stringify(proof, null, 2), "SecretAuth proof copied", el);
+    this.copyText(JSON.stringify(proof, null, 2), String(this.i18n$.actual.proofCopied), el);
   }
 
   private async updateKeyPubKeyPreview() {
@@ -685,7 +722,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
   }
 
   private applyConfig(config: SecretAuthConfig | null | undefined) {
-    this.title$.update(config?.title ?? "SecretAuth");
+    this.title$.update(config?.title ?? String(this.i18n$.actual.defaultTitle));
     this.devMode$.update(!!config?.devMode);
     this.syncProofPreview(this.state$.actual);
   }
@@ -704,7 +741,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
 
       if (prevMessage && prevMessage !== nextMessage) {
         this.selectedWallet = null;
-        this.walletLabel$.update("No wallet selected");
+        this.syncIdleWalletLabel();
         this.clearEphemeralKey();
 
         this.setPartialState({
@@ -720,7 +757,9 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
       }
     } catch (error) {
       this.challengeText$.update("");
-      this.error$.update(error instanceof Error ? error.message : "Invalid challenge");
+      this.error$.update(
+        error instanceof Error ? error.message : String(this.i18n$.actual.invalidChallenge),
+      );
     }
   }
 
@@ -734,7 +773,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
     const proofPubKey = this.resolveProofPubKey(pubKey, wallet);
 
     if (!proofPubKey) {
-      this.error$.update("Cannot determine pubKey for proof");
+      this.error$.update(String(this.i18n$.actual.cannotDeterminePubKey));
       return;
     }
 
@@ -853,7 +892,7 @@ export class SecretAuthComponent extends AbstractComponent<SecretAuthConfig, any
       .catch(() => {
         toastService.show({
           kind: "error",
-          message: "Copy failed",
+          message: String(this.i18n$.actual.copyFailed),
           element: el ?? null,
           alignX: "right",
           alignY: "top",

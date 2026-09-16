@@ -1,3 +1,7 @@
+import { i18nService } from "cruzo";
+
+import messages from "./wallet-error.i18n.json";
+
 function readMessage(error: unknown): string {
   if (typeof error === "string") return error;
 
@@ -63,5 +67,10 @@ export function isWalletUserCancellation(error: unknown) {
 export function formatWalletError(error: unknown) {
   const message = readMessage(error);
 
-  return message || "Wallet request failed";
+  if (message) return message;
+
+  const lang = i18nService.lang$.actual as keyof typeof messages;
+  const dict = messages[lang] ?? messages.en;
+
+  return String(dict.walletRequestFailed ?? messages.en.walletRequestFailed);
 }

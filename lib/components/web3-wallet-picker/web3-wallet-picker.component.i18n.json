@@ -1,0 +1,50 @@
+{
+  "en": {
+    "title": "Connect wallet",
+    "ethereum": "Ethereum",
+    "ton": "TON",
+    "solana": "Solana",
+    "tron": "Tron",
+    "custom": "Custom",
+    "browserExtension": "Browser extension",
+    "mobileWallet": "Mobile wallet",
+    "ethExtHint": "MetaMask, Rabby and other EIP-1193 wallets",
+    "ethAppHint": "WalletConnect",
+    "tonExtHint": "Tonkeeper and other TON wallets",
+    "tonAppHint": "Tonkeeper app via Ton Connect",
+    "solExtHint": "Phantom and other Solana wallets",
+    "tronExtHint": "TronLink"
+  },
+  "ru": {
+    "title": "Подключить кошелёк",
+    "ethereum": "Ethereum",
+    "ton": "TON",
+    "solana": "Solana",
+    "tron": "Tron",
+    "custom": "Свой",
+    "browserExtension": "Расширение браузера",
+    "mobileWallet": "Мобильный кошелёк",
+    "ethExtHint": "MetaMask, Rabby и другие EIP-1193 кошельки",
+    "ethAppHint": "WalletConnect",
+    "tonExtHint": "Tonkeeper и другие TON-кошельки",
+    "tonAppHint": "Приложение Tonkeeper через Ton Connect",
+    "solExtHint": "Phantom и другие Solana-кошельки",
+    "tronExtHint": "TronLink"
+  },
+  "fr": {
+    "title": "Connecter un portefeuille",
+    "ethereum": "Ethereum",
+    "ton": "TON",
+    "solana": "Solana",
+    "tron": "Tron",
+    "custom": "Personnalisé",
+    "browserExtension": "Extension de navigateur",
+    "mobileWallet": "Portefeuille mobile",
+    "ethExtHint": "MetaMask, Rabby et autres portefeuilles EIP-1193",
+    "ethAppHint": "WalletConnect",
+    "tonExtHint": "Tonkeeper et autres portefeuilles TON",
+    "tonAppHint": "Application Tonkeeper via Ton Connect",
+    "solExtHint": "Phantom et autres portefeuilles Solana",
+    "tronExtHint": "TronLink"
+  }
+}

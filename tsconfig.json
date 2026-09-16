@@ -7,6 +7,7 @@
     "strict": true,
     "noImplicitAny": true,
     "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
     "sourceMap": true,
     "useDefineForClassFields": true,
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
@@ -16,6 +17,6 @@
     "strictNullChecks": false,
     "noEmit": true
   },
-  "include": ["lib/**/*.ts", "lib/**/*.d.ts"],
+  "include": ["lib/**/*.ts", "lib/**/*.d.ts", "lib/**/*.json"],
   "exclude": ["dist", "node_modules", "vite.config.ts"]
 }

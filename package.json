@@ -45,11 +45,11 @@
     "@walletconnect/ethereum-provider": "^2.23.9"
   },
   "peerDependencies": {
-    "cruzo": "1.1.0"
+    "cruzo": "1.2.0"
   },
   "devDependencies": {
     "@types/node": "20.0.0",
-    "cruzo": "1.1.0",
+    "cruzo": "1.2.0",
     "typescript": "5.9.3"
   }
 }

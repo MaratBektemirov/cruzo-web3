@@ -1,0 +1,38 @@
+{
+  "en": {
+    "payloadLabel": "Payload (signed as JSON string)",
+    "payloadLimit": "— max {{n}} chars, synced to URL",
+    "signingState": "Signing state (synced to URL):",
+    "signerTitle": "Signer {{n}}",
+    "statusSigned": "Signed",
+    "statusConnected": "Connected",
+    "statusIdle": "Idle",
+    "noWallet": "No wallet",
+    "walletHint": "Click Connect wallet to choose a provider (extension or mobile app).",
+    "extensionsDetected": "Extensions detected: {{list}}"
+  },
+  "ru": {
+    "payloadLabel": "Payload (подписывается как JSON-строка)",
+    "payloadLimit": "— макс. {{n}} символов, синхронизируется с URL",
+    "signingState": "Состояние подписи (синхронизируется с URL):",
+    "signerTitle": "Подписант {{n}}",
+    "statusSigned": "Подписано",
+    "statusConnected": "Подключено",
+    "statusIdle": "Ожидание",
+    "noWallet": "Нет кошелька",
+    "walletHint": "Нажмите «Подключить кошелёк», чтобы выбрать провайдера (расширение или приложение).",
+    "extensionsDetected": "Обнаружены расширения: {{list}}"
+  },
+  "fr": {
+    "payloadLabel": "Payload (signé comme chaîne JSON)",
+    "payloadLimit": "— max. {{n}} caractères, synchronisé avec l'URL",
+    "signingState": "État de signature (synchronisé avec l'URL) :",
+    "signerTitle": "Signataire {{n}}",
+    "statusSigned": "Signé",
+    "statusConnected": "Connecté",
+    "statusIdle": "Inactif",
+    "noWallet": "Aucun portefeuille",
+    "walletHint": "Cliquez sur « Connecter un portefeuille » pour choisir un fournisseur (extension ou application).",
+    "extensionsDetected": "Extensions détectées : {{list}}"
+  }
+}
